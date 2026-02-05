@@ -3,6 +3,8 @@ let key = null
 let page = 1
 let selectedIndex = null
 let passwordHidden = false
+let selectedCategory = null
+let currentCategory = null
 
 const PER_PAGE = 5
 const SALT = new TextEncoder().encode('vault-salt')
@@ -129,15 +131,19 @@ function clearForm() {
 }
 
 function loadAccount(c, i) {
-  const a = vaultData.categories[c][i]
+  selectedCategory = c
   selectedIndex = i
+
+  const a = vaultData.categories[c][i]
   accName.value = a.name
   accUser.value = a.user
   accPass.value = a.pass
   accNotes.value = a.notes
+
   togglePassword(true)
   renderAccounts()
 }
+
 
 function delAccount(c, i) {
   if (!confirm('Delete this account?')) return
@@ -149,6 +155,13 @@ function delAccount(c, i) {
 
 function renderAccounts() {
   const c = categorySelect.value
+
+  if (c !== currentCategory) {
+    clearForm()
+    selectedIndex = null
+    currentCategory = c
+  }
+
   catTitle.textContent = c || 'No category selected'
   if (!c) return
 
@@ -165,7 +178,7 @@ function renderAccounts() {
   items.forEach((a, i) => {
     const idx = start + i
     accountList.innerHTML += `
-      <div class="list-item ${selectedIndex === idx ? 'active' : ''}"
+      <div class="list-item ${selectedCategory === c && selectedIndex === idx ? 'active' : ''}"
            onclick="loadAccount('${c}', ${idx})">
         <div>
           <strong>${a.name}</strong><br>
@@ -230,7 +243,9 @@ function importVault(e) {
 }
 
 function onCategoryChange() {
-  clearForm()
+  selectedCategory = null
+  selectedIndex = null
   page = 1
+  clearForm()
   renderAccounts()
 }
