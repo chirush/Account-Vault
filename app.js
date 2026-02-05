@@ -228,3 +228,9 @@ function importVault(e) {
   r.onload = () => localStorage.setItem('vault', r.result)
   r.readAsText(e.target.files[0])
 }
+
+function onCategoryChange() {
+  clearForm()
+  page = 1
+  renderAccounts()
+}
