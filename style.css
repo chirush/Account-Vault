@@ -1,0 +1,169 @@
+:root {
+  --border: #1e293b;
+  --accent: #2563eb;
+  --text: #e5e7eb;
+  --muted: #94a3b8;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, sans-serif;
+  color: var(--text);
+  background: radial-gradient(circle at top, #020617, #000);
+}
+
+.container {
+  max-width: 900px;
+  margin: 40px auto;
+  padding: 16px;
+}
+
+.card {
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 16px;
+  margin-bottom: 20px;
+  background: linear-gradient(180deg, #020617, #01030a);
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+}
+
+.card-header h3 {
+  margin: 0;
+}
+
+.toggle {
+  color: var(--muted);
+}
+
+.card-body {
+  margin-top: 12px;
+}
+
+.card-body.collapsed {
+  display: none;
+}
+
+input,
+textarea,
+select,
+button {
+  width: 100%;
+  margin-top: 10px;
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: #020617;
+  color: var(--text);
+}
+
+textarea {
+  resize: vertical;
+}
+
+button {
+  cursor: pointer;
+}
+
+button.primary {
+  background: var(--accent);
+  border: none;
+}
+
+.row {
+  display: flex;
+  gap: 10px;
+}
+
+.hidden {
+  display: none;
+}
+
+.input-wrap {
+  position: relative;
+}
+
+.input-wrap input {
+  padding-right: 74px;
+}
+
+.icon-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0.6;
+}
+
+.icon-btn:hover {
+  opacity: 1;
+}
+
+.toggle-btn {
+  right: 42px;
+}
+
+.copy-btn {
+  right: 10px;
+}
+
+.icon-btn svg {
+  width: 18px;
+  height: 18px;
+  stroke: currentColor;
+  fill: none;
+}
+
+.list-item {
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  margin-top: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+}
+
+.list-item.active {
+  outline: 2px solid var(--accent);
+}
+
+.delete {
+  cursor: pointer;
+  opacity: 0.6;
+}
+
+.delete:hover {
+  opacity: 1;
+  color: #ef4444;
+}
+
+.pagination {
+  display: flex;
+  gap: 6px;
+  margin-top: 12px;
+}
+
+.pagination button {
+  width: auto;
+  padding: 6px 10px;
+}
+
+small {
+  color: var(--muted);
+}

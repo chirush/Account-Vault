@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Account Vault</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="style.css" />
+  <link rel="icon" type="image/x-icon" href="images/favicon.ico" />
+</head>
+
+<body>
+  <div class="container">
+    <h1>🔒Account Vault</h1>
+
+    <div id="vault" class="hidden">
+
+      <div class="card">
+        <div class="card-header" onclick="toggle(this)">
+          <h3>Categories</h3>
+          <span class="toggle">▲</span>
+        </div>
+        <div class="card-body">
+          <select id="categorySelect" onchange="renderAccounts()"></select>
+          <div class="row">
+            <input id="newCategory" placeholder="New category" />
+            <button class="primary" onclick="addCategory()">Add</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header" onclick="toggle(this)">
+          <h3 id="catTitle">No category selected</h3>
+          <span class="toggle">▲</span>
+        </div>
+        <div class="card-body">
+
+          <input id="accName" placeholder="Account name" />
+
+          <div class="input-wrap">
+            <input id="accUser" placeholder="Username / Email" />
+            <span class="icon-btn copy-btn" onclick="copyValue('accUser')">
+              <svg viewBox="0 0 24 24" stroke-width="2">
+                <rect x="9" y="9" width="13" height="13" rx="2" />
+                <rect x="2" y="2" width="13" height="13" rx="2" />
+              </svg>
+            </span>
+          </div>
+
+          <div class="input-wrap">
+            <input id="accPass" type="text" placeholder="Password / Token" />
+
+            <span class="icon-btn toggle-btn" onclick="togglePassword()">
+              <svg id="eyeShow" viewBox="0 0 24 24" stroke-width="2">
+                <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z" />
+                <circle cx="12" cy="12" r="3" />
+              </svg>
+              <svg
+                id="eyeHide"
+                viewBox="0 0 24 24"
+                stroke-width="2"
+                style="display:none"
+              >
+                <path d="M17.94 17.94A10.94 10.94 0 0 1 12 19c-7 0-11-7-11-7a21.82 21.82 0 0 1 5.06-6.06" />
+                <path d="M1 1l22 22" />
+              </svg>
+            </span>
+
+            <span class="icon-btn copy-btn" onclick="copyValue('accPass')">
+              <svg viewBox="0 0 24 24" stroke-width="2">
+                <rect x="9" y="9" width="13" height="13" rx="2" />
+                <rect x="2" y="2" width="13" height="13" rx="2" />
+              </svg>
+            </span>
+          </div>
+
+          <textarea id="accNotes" placeholder="Notes"></textarea>
+
+          <div class="row">
+            <button class="primary" onclick="saveAccount()">Save</button>
+            <button onclick="clearForm()">Clear</button>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header" onclick="toggle(this)">
+          <h3>Accounts</h3>
+          <span class="toggle">▲</span>
+        </div>
+        <div class="card-body">
+          <input id="search" placeholder="Search" oninput="renderAccounts()" />
+          <div id="accountList"></div>
+          <div id="pagination" class="pagination"></div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="card">
+      <div class="card-header" onclick="toggle(this)">
+        <h3>Vault Control</h3>
+        <span class="toggle">▲</span>
+      </div>
+      <div class="card-body">
+        <input id="master" type="password" placeholder="Master password" />
+        <div class="row">
+          <button class="primary" onclick="unlock()">Unlock</button>
+          <button onclick="saveVault()">Save Vault</button>
+          <button onclick="exportVault()">Export</button>
+        </div>
+        <input type="file" onchange="importVault(event)" />
+        <small>Client-Side Only • AES-256-GCM • No Backend</small>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
