@@ -64,84 +64,87 @@
     </div>
 
     <!-- Vault (hidden until unlock) -->
-    <div id="vault" class="hidden">
+    <div id="vault" class="hidden vault-layout">
 
-      <!-- Dashboard -->
-      <div class="dashboard">
-        <div class="stat"><span class="stat-value" id="statCats">0</span><span class="stat-label">Categories</span></div>
-        <div class="stat"><span class="stat-value" id="statAccs">0</span><span class="stat-label">Accounts</span></div>
-        <div class="stat"><span class="stat-value" id="statSaved">–</span><span class="stat-label">Last Saved</span></div>
-      </div>
-
-      <!-- Categories -->
-      <div class="card">
-        <div class="card-header" onclick="toggle(this)">
+      <!-- Sidebar: Categories -->
+      <aside class="sidebar">
+        <div class="sidebar-header">
           <h3>Categories</h3>
-          <span class="toggle-arrow">▲</span>
         </div>
-        <div class="card-body">
-          <div id="categoryChips" class="category-chips"></div>
-          <div class="add-cat-row">
-            <input id="newCategory" placeholder="New category name" onkeydown="if(event.key==='Enter')addCategory()" />
-            <button class="btn-primary" onclick="addCategory()">Add</button>
-          </div>
+        <div id="categoryList" class="category-list"></div>
+        <div class="sidebar-footer">
+          <input id="newCategory" placeholder="New category" onkeydown="if(event.key==='Enter')addCategory()" />
+          <button class="btn-primary btn-full" onclick="addCategory()" style="margin-top:6px">+ Add</button>
         </div>
-      </div>
+      </aside>
 
-      <!-- Account Form -->
-      <div class="card">
-        <div class="card-header" onclick="toggle(this)">
-          <h3 id="catTitle">No category selected</h3>
-          <span class="toggle-arrow">▲</span>
+      <!-- Main Content -->
+      <main class="main-content">
+
+        <!-- Dashboard -->
+        <div class="dashboard">
+          <div class="stat"><span class="stat-value" id="statCats">0</span><span class="stat-label">Categories</span></div>
+          <div class="stat"><span class="stat-value" id="statAccs">0</span><span class="stat-label">Accounts</span></div>
+          <div class="stat"><span class="stat-value" id="statSaved">–</span><span class="stat-label">Last Saved</span></div>
         </div>
-        <div class="card-body">
-          <input id="accName" placeholder="Account name" />
 
-          <div class="input-wrap">
-            <input id="accUser" placeholder="Username / Email" />
-            <span class="icon-btn copy-btn" onclick="copyValue('accUser')" title="Copy username">
-              <svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-            </span>
+        <!-- Account Form -->
+        <div class="card">
+          <div class="card-header" onclick="toggle(this)">
+            <h3 id="catTitle">No category selected</h3>
+            <span class="toggle-arrow">▲</span>
           </div>
+          <div class="card-body">
+            <input id="accName" placeholder="Account name" />
 
-          <div class="input-wrap">
-            <input id="accPass" type="text" placeholder="Password / Token" />
-            <span class="icon-btn toggle-btn" onclick="togglePassword()" title="Toggle visibility">
-              <svg id="eyeShow" viewBox="0 0 24 24"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>
-              <svg id="eyeHide" viewBox="0 0 24 24" style="display:none"><path d="M17.94 17.94A10.94 10.94 0 0 1 12 19c-7 0-11-7-11-7a21.82 21.82 0 0 1 5.06-6.06"/><path d="M1 1l22 22"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 7 11 7a21.82 21.82 0 0 1-4.1 5.17"/></svg>
-            </span>
-            <span class="icon-btn copy-btn" onclick="copyValue('accPass')" title="Copy password">
-              <svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-            </span>
-          </div>
+            <div class="input-wrap">
+              <input id="accUser" placeholder="Username / Email" />
+              <span class="icon-btn copy-btn" onclick="copyValue('accUser')" title="Copy username">
+                <svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+              </span>
+            </div>
 
-          <textarea id="accNotes" placeholder="Notes" rows="3"></textarea>
+            <div class="input-wrap">
+              <input id="accPass" type="text" placeholder="Password / Token" />
+              <span class="icon-btn toggle-btn" onclick="togglePassword()" title="Toggle visibility">
+                <svg id="eyeShow" viewBox="0 0 24 24"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>
+                <svg id="eyeHide" viewBox="0 0 24 24" style="display:none"><path d="M17.94 17.94A10.94 10.94 0 0 1 12 19c-7 0-11-7-11-7a21.82 21.82 0 0 1 5.06-6.06"/><path d="M1 1l22 22"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 7 11 7a21.82 21.82 0 0 1-4.1 5.17"/></svg>
+              </span>
+              <span class="icon-btn copy-btn" onclick="copyValue('accPass')" title="Copy password">
+                <svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+              </span>
+            </div>
 
-          <div class="form-actions">
-            <label class="favorite-toggle">
-              <input type="checkbox" id="accFavorite" />
-              <span class="star">★</span> Favorite
-            </label>
-            <div class="btn-group">
-              <button class="btn-primary" onclick="saveAccount()">Save</button>
-              <button class="btn-secondary" onclick="clearForm()">Clear</button>
+            <textarea id="accNotes" placeholder="Notes" rows="3"></textarea>
+
+            <div class="form-actions">
+              <label class="favorite-toggle">
+                <input type="checkbox" id="accFavorite" />
+                <span class="star">★</span> Favorite
+              </label>
+              <div class="btn-group">
+                <button class="btn-primary" onclick="saveAccount()">Save</button>
+                <button class="btn-secondary" onclick="clearForm()">Clear</button>
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      <!-- Accounts List -->
-      <div class="card">
-        <div class="card-header" onclick="toggle(this)">
-          <h3>Accounts</h3>
-          <span class="toggle-arrow">▲</span>
+        <!-- Accounts List -->
+        <div class="card">
+          <div class="card-header" onclick="toggle(this)">
+            <h3>Accounts</h3>
+            <span class="toggle-arrow">▲</span>
+          </div>
+          <div class="card-body">
+            <input id="search" placeholder="🔍  Search accounts..." oninput="renderAccounts()" />
+            <div id="accountList"></div>
+            <div id="pagination" class="pagination"></div>
+          </div>
         </div>
-        <div class="card-body">
-          <input id="search" placeholder="🔍  Search accounts..." oninput="renderAccounts()" />
-          <div id="accountList"></div>
-          <div id="pagination" class="pagination"></div>
-        </div>
-      </div>
+
+      </main>
+
 
     </div>
   </div>

@@ -64,7 +64,7 @@ function lockVault() {
   document.getElementById('master').value = ''
   document.getElementById('accountList').innerHTML = ''
   document.getElementById('pagination').innerHTML = ''
-  document.getElementById('categoryChips').innerHTML = ''
+  document.getElementById('categoryList').innerHTML = ''
 
   showToast('Vault locked', 'info')
 }

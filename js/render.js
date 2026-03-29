@@ -6,17 +6,17 @@ import { esc, timeAgo } from './ui.js'
 // ── Categories ──
 
 export function renderCategories() {
-  const el = document.getElementById('categoryChips')
+  const el = document.getElementById('categoryList')
   el.innerHTML = ''
   Object.entries(state.vaultData.categories).forEach(([name, cat]) => {
     const active = state.currentCategory === name ? 'active' : ''
     const count = cat.accounts.length
     el.innerHTML += `
-      <div class="category-chip ${active}" onclick="selectCategory('${esc(name)}')">
+      <div class="cat-item ${active}" onclick="selectCategory('${esc(name)}')">
         <span class="color-dot" style="background:${cat.color}"></span>
-        <span>${esc(name)}</span>
-        <span class="chip-count">${count}</span>
-        <span class="chip-delete" onclick="event.stopPropagation();deleteCategory('${esc(name)}')" title="Delete category">&times;</span>
+        <span class="cat-name">${esc(name)}</span>
+        <span class="cat-count">${count}</span>
+        <span class="cat-delete" onclick="event.stopPropagation();deleteCategory('${esc(name)}')" title="Delete category">&times;</span>
       </div>`
   })
 }
