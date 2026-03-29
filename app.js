@@ -13,6 +13,8 @@ import { renderCategories, renderAccounts, updateDashboard, goToPage } from './j
 import { saveVault, exportVault, importVault } from './js/storage.js'
 import { addCategory, deleteCategory, selectCategory } from './js/categories.js'
 import { saveAccount, loadAccount, delAccount, toggleFavorite } from './js/accounts.js'
+import { isSyncEnabled, getSyncStatus, pullFromGist, pushToGist, setupSync, disconnectSync, updateSyncIndicator } from './js/sync.js'
+import { timeAgo } from './js/ui.js'
 
 // ── Vault Unlock ──
 
@@ -21,7 +23,14 @@ async function unlock() {
   if (!pw) return showToast('Enter master password', 'warning')
 
   state.key = await deriveKey(pw)
-  const saved = localStorage.getItem('vault')
+  let saved = localStorage.getItem('vault')
+
+  // If no local data but sync is configured, try pulling from cloud
+  if (!saved && isSyncEnabled()) {
+    showToast('Pulling vault from cloud...', 'info')
+    const pulled = await pullFromGist(false)
+    if (pulled) saved = localStorage.getItem('vault')
+  }
 
   if (saved) {
     try {
@@ -45,6 +54,7 @@ async function unlock() {
   updateDashboard()
   await saveVault() // persist migrated data format
   resetAutoLock()
+  updateSyncIndicator()
   showToast('Vault unlocked', 'success')
 }
 
@@ -94,6 +104,68 @@ async function changePassword() {
   showToast('Master password changed', 'success')
 }
 
+// ── Sync Modal ──
+
+function openSyncModal() {
+  const modal = document.getElementById('syncModal')
+  const setup = document.getElementById('syncSetup')
+  const status = document.getElementById('syncConnected')
+  const s = getSyncStatus()
+
+  if (s.enabled) {
+    setup.style.display = 'none'
+    status.style.display = 'block'
+    document.getElementById('syncGistIdDisplay').textContent = s.gistId
+    document.getElementById('syncLastTime').textContent = s.lastSync ? timeAgo(s.lastSync) : 'never'
+  } else {
+    setup.style.display = 'block'
+    status.style.display = 'none'
+  }
+
+  modal.classList.remove('hidden')
+}
+
+function closeSyncModal() {
+  document.getElementById('syncModal').classList.add('hidden')
+  document.getElementById('syncToken').value = ''
+  document.getElementById('syncGistInput').value = ''
+}
+
+async function enableSync() {
+  const token = document.getElementById('syncToken').value.trim()
+  const gistId = document.getElementById('syncGistInput').value.trim()
+
+  if (!token) return showToast('Enter your GitHub token', 'warning')
+
+  try {
+    showToast('Setting up sync...', 'info')
+    const id = await setupSync(token, gistId || null)
+    closeSyncModal()
+    updateSyncIndicator()
+    showToast(`Sync enabled! Gist ID: ${id}`, 'success')
+  } catch (e) {
+    showToast('Setup failed: ' + e.message, 'error')
+  }
+}
+
+async function manualPush() {
+  showToast('Pushing to cloud...', 'info')
+  await pushToGist(false)
+}
+
+async function manualPull() {
+  showToast('Pulling from cloud...', 'info')
+  const pulled = await pullFromGist(false)
+  if (pulled) showToast('Relock and unlock to load pulled data', 'info')
+}
+
+function disableSync() {
+  if (!confirm('Disconnect cloud sync? Your data will remain on GitHub but will no longer sync.')) return
+  disconnectSync()
+  closeSyncModal()
+  showToast('Sync disconnected', 'info')
+}
+
 // ── Auto-Lock ──
 
 function resetAutoLock() {
@@ -128,9 +200,12 @@ Object.assign(window, {
   // Accounts
   saveAccount, loadAccount, delAccount, toggleFavorite,
   // Rendering
-  renderAccounts, goToPage
+  renderAccounts, goToPage,
+  // Sync
+  openSyncModal, closeSyncModal, enableSync, manualPush, manualPull, disableSync
 })
 
 // ── Init ──
 
 initTheme()
+updateSyncIndicator()

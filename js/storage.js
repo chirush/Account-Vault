@@ -3,6 +3,7 @@
 import { state } from './state.js'
 import { showToast } from './toast.js'
 import { updateDashboard } from './render.js'
+import { isSyncEnabled, pushToGist } from './sync.js'
 
 export async function saveVault() {
   if (!state.key) return
@@ -14,6 +15,9 @@ export async function saveVault() {
   }))
   state.lastSavedTime = Date.now()
   updateDashboard()
+
+  // Auto-push to Gist if sync is enabled
+  if (isSyncEnabled()) pushToGist()
 }
 
 export function exportVault() {

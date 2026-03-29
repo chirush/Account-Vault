@@ -84,6 +84,16 @@ header {
 .header-btn svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2; }
 .header-btn input[type="file"] { display: none; }
 
+.sync-btn { position: relative; }
+.sync-dot {
+  position: absolute; top: 4px; right: 4px;
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--success);
+  box-shadow: 0 0 6px var(--success);
+}
+
+.btn-full { width: 100%; justify-content: center; }
+
 /* ── Container ── */
 .container { max-width: 1100px; margin: 0 auto; padding: 24px 16px; }
 
