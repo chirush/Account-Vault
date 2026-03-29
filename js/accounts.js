@@ -6,6 +6,13 @@ import { togglePassword, clearForm } from './ui.js'
 import { saveVault } from './storage.js'
 import { renderCategories, renderAccounts, updateDashboard } from './render.js'
 
+/** Safely access accounts array from either old or new format */
+function getAccounts(c) {
+  const cat = state.vaultData.categories[c]
+  if (Array.isArray(cat)) return cat
+  return cat?.accounts || []
+}
+
 export function saveAccount() {
   const c = state.currentCategory
   if (!c) return showToast('Select a category first', 'warning')
@@ -19,11 +26,12 @@ export function saveAccount() {
     lastModified: Date.now()
   }
 
+  const accounts = getAccounts(c)
   if (state.selectedIndex === null) {
-    state.vaultData.categories[c].accounts.push(data)
+    accounts.push(data)
     showToast('Account saved', 'success')
   } else {
-    state.vaultData.categories[c].accounts[state.selectedIndex] = data
+    accounts[state.selectedIndex] = data
     showToast('Account updated', 'success')
   }
 
@@ -37,7 +45,7 @@ export function saveAccount() {
 export function loadAccount(c, i) {
   state.currentCategory = c
   state.selectedIndex = i
-  const a = state.vaultData.categories[c].accounts[i]
+  const a = getAccounts(c)[i]
   document.getElementById('accName').value = a.name
   document.getElementById('accUser').value = a.user
   document.getElementById('accPass').value = a.pass
@@ -50,7 +58,7 @@ export function loadAccount(c, i) {
 
 export function delAccount(c, i) {
   if (!confirm('Delete this account?')) return
-  state.vaultData.categories[c].accounts.splice(i, 1)
+  getAccounts(c).splice(i, 1)
   clearForm()
   renderCategories()
   renderAccounts()
@@ -60,7 +68,8 @@ export function delAccount(c, i) {
 }
 
 export function toggleFavorite(c, i) {
-  state.vaultData.categories[c].accounts[i].favorite = !state.vaultData.categories[c].accounts[i].favorite
+  const accounts = getAccounts(c)
+  accounts[i].favorite = !accounts[i].favorite
   renderAccounts()
   saveVault()
 }

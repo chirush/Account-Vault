@@ -43,6 +43,7 @@ async function unlock() {
 
   renderCategories()
   updateDashboard()
+  await saveVault() // persist migrated data format
   resetAutoLock()
   showToast('Vault unlocked', 'success')
 }

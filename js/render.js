@@ -3,6 +3,12 @@
 import { state, PER_PAGE } from './state.js'
 import { esc, timeAgo } from './ui.js'
 
+/** Safely get accounts array — handles both old (array) and new (object) formats */
+function getAccounts(cat) {
+  if (Array.isArray(cat)) return cat
+  return cat?.accounts || []
+}
+
 // ── Categories ──
 
 export function renderCategories() {
@@ -10,10 +16,10 @@ export function renderCategories() {
   el.innerHTML = ''
   Object.entries(state.vaultData.categories).forEach(([name, cat]) => {
     const active = state.currentCategory === name ? 'active' : ''
-    const count = cat.accounts.length
+    const count = getAccounts(cat).length
     el.innerHTML += `
       <div class="cat-item ${active}" onclick="selectCategory('${esc(name)}')">
-        <span class="color-dot" style="background:${cat.color}"></span>
+        <span class="color-dot" style="background:${cat.color || '#6366f1'}"></span>
         <span class="cat-name">${esc(name)}</span>
         <span class="cat-count">${count}</span>
         <span class="cat-delete" onclick="event.stopPropagation();deleteCategory('${esc(name)}')" title="Delete category">&times;</span>
@@ -37,7 +43,7 @@ export function renderAccounts() {
   }
 
   const q = document.getElementById('search').value.toLowerCase()
-  let list = state.vaultData.categories[c].accounts
+  let list = getAccounts(state.vaultData.categories[c])
     .map((a, i) => ({ ...a, _idx: i }))
     .filter(a => a.name.toLowerCase().includes(q) || (a.user && a.user.toLowerCase().includes(q)))
 
@@ -103,7 +109,7 @@ export function goToPage(p) {
 export function updateDashboard() {
   const cats = Object.keys(state.vaultData.categories).length
   let accs = 0
-  for (const c in state.vaultData.categories) accs += state.vaultData.categories[c].accounts.length
+  for (const c in state.vaultData.categories) accs += getAccounts(state.vaultData.categories[c]).length
   document.getElementById('statCats').textContent = cats
   document.getElementById('statAccs').textContent = accs
   document.getElementById('statSaved').textContent = state.lastSavedTime ? timeAgo(state.lastSavedTime) : '–'
