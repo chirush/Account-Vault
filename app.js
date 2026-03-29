@@ -1,251 +1,135 @@
-let vaultData = { categories: {} }
-let key = null
-let page = 1
-let selectedIndex = null
-let passwordHidden = false
-let selectedCategory = null
-let currentCategory = null
+/* ══════════════════════════════════════════
+   Account Vault — Entry Point
+   AES-256-GCM · Client-Side · No Backend
+   ══════════════════════════════════════════ */
 
-const PER_PAGE = 5
-const SALT = new TextEncoder().encode('vault-salt')
+// ── Module Imports ──
+import { state, AUTO_LOCK_MS } from './js/state.js'
+import { deriveKey, migrateVaultData } from './js/crypto.js'
+import { showToast } from './js/toast.js'
+import { initTheme, toggleTheme } from './js/theme.js'
+import { toggle, togglePassword, copyValue, quickCopy, clearForm } from './js/ui.js'
+import { renderCategories, renderAccounts, updateDashboard, goToPage } from './js/render.js'
+import { saveVault, exportVault, importVault } from './js/storage.js'
+import { addCategory, deleteCategory, selectCategory } from './js/categories.js'
+import { saveAccount, loadAccount, delAccount, toggleFavorite } from './js/accounts.js'
 
-function toggle(el) {
-  const body = el.nextElementSibling
-  body.classList.toggle('collapsed')
-  el.querySelector('.toggle').textContent =
-    body.classList.contains('collapsed') ? '▼' : '▲'
-}
-
-function copyValue(id) {
-  const el = document.getElementById(id)
-  if (el.value) navigator.clipboard.writeText(el.value)
-}
-
-function updateEye() {
-  eyeShow.style.display = passwordHidden ? 'none' : 'block'
-  eyeHide.style.display = passwordHidden ? 'block' : 'none'
-}
-
-function togglePassword(force) {
-  passwordHidden = force !== undefined ? force : !passwordHidden
-  accPass.type = passwordHidden ? 'password' : 'text'
-  updateEye()
-}
-
-async function deriveKey(password) {
-  const base = await crypto.subtle.importKey(
-    'raw',
-    new TextEncoder().encode(password),
-    'PBKDF2',
-    false,
-    ['deriveKey']
-  )
-
-  return crypto.subtle.deriveKey(
-    {
-      name: 'PBKDF2',
-      salt: SALT,
-      iterations: 100000,
-      hash: 'SHA-256'
-    },
-    base,
-    { name: 'AES-GCM', length: 256 },
-    false,
-    ['encrypt', 'decrypt']
-  )
-}
+// ── Vault Unlock ──
 
 async function unlock() {
-  if (!master.value) return alert('Enter master password')
+  const pw = document.getElementById('master').value
+  if (!pw) return showToast('Enter master password', 'warning')
 
-  key = await deriveKey(master.value)
+  state.key = await deriveKey(pw)
   const saved = localStorage.getItem('vault')
 
   if (saved) {
     try {
       const { iv, data } = JSON.parse(saved)
       const decrypted = await crypto.subtle.decrypt(
-        { name: 'AES-GCM', iv: new Uint8Array(iv) },
-        key,
-        new Uint8Array(data)
+        { name: 'AES-GCM', iv: new Uint8Array(iv) }, state.key, new Uint8Array(data)
       )
-      vaultData = JSON.parse(new TextDecoder().decode(decrypted))
+      state.vaultData = JSON.parse(new TextDecoder().decode(decrypted))
+      state.vaultData = migrateVaultData(state.vaultData)
     } catch {
-      key = null
-      return alert('Wrong password')
+      state.key = null
+      return showToast('Wrong password', 'error')
     }
   }
 
-  vault.classList.remove('hidden')
+  document.getElementById('lockScreen').classList.add('hidden')
+  document.getElementById('vault').classList.remove('hidden')
+  document.getElementById('vaultActions').classList.remove('hidden')
+
   renderCategories()
+  updateDashboard()
+  resetAutoLock()
+  showToast('Vault unlocked', 'success')
 }
 
-function addCategory() {
-  const n = newCategory.value.trim()
-  if (!n || vaultData.categories[n]) return
+// ── Vault Lock ──
 
-  vaultData.categories[n] = []
-  newCategory.value = ''
-  renderCategories()
-  saveVault()
-}
-
-function renderCategories() {
-  categorySelect.innerHTML =
-    '<option value="" disabled selected>Select category</option>'
-
-  Object.keys(vaultData.categories).forEach(c => {
-    categorySelect.innerHTML += `<option>${c}</option>`
-  })
-}
-
-function saveAccount() {
-  const c = categorySelect.value
-  if (!c) return alert('Select category')
-
-  const data = {
-    name: accName.value,
-    user: accUser.value,
-    pass: accPass.value,
-    notes: accNotes.value
-  }
-
-  if (selectedIndex === null) {
-    vaultData.categories[c].push(data)
-  } else {
-    vaultData.categories[c][selectedIndex] = data
-  }
+function lockVault() {
+  state.key = null
+  state.vaultData = { categories: {} }
+  state.currentCategory = null
+  state.selectedIndex = null
+  state.page = 1
+  clearTimeout(state.autoLockTimer)
 
   clearForm()
-  renderAccounts()
-  saveVault()
+  document.getElementById('vault').classList.add('hidden')
+  document.getElementById('vaultActions').classList.add('hidden')
+  document.getElementById('lockScreen').classList.remove('hidden')
+  document.getElementById('master').value = ''
+  document.getElementById('accountList').innerHTML = ''
+  document.getElementById('pagination').innerHTML = ''
+  document.getElementById('categoryChips').innerHTML = ''
+
+  showToast('Vault locked', 'info')
 }
 
-function clearForm() {
-  accName.value = ''
-  accUser.value = ''
-  accPass.value = ''
-  accNotes.value = ''
-  selectedIndex = null
-  togglePassword(false)
+// ── Change Master Password ──
+
+function showChangePassword() {
+  document.getElementById('cpModal').classList.remove('hidden')
 }
 
-function loadAccount(c, i) {
-  selectedCategory = c
-  selectedIndex = i
-
-  const a = vaultData.categories[c][i]
-  accName.value = a.name
-  accUser.value = a.user
-  accPass.value = a.pass
-  accNotes.value = a.notes
-
-  togglePassword(true)
-  renderAccounts()
+function closeChangePassword() {
+  document.getElementById('cpModal').classList.add('hidden')
+  document.getElementById('cpNew').value = ''
+  document.getElementById('cpConfirm').value = ''
 }
 
+async function changePassword() {
+  const np = document.getElementById('cpNew').value
+  const cp = document.getElementById('cpConfirm').value
+  if (!np) return showToast('Enter new password', 'warning')
+  if (np !== cp) return showToast('Passwords do not match', 'error')
 
-function delAccount(c, i) {
-  if (!confirm('Delete this account?')) return
-  vaultData.categories[c].splice(i, 1)
-  clearForm()
-  renderAccounts()
-  saveVault()
+  state.key = await deriveKey(np)
+  await saveVault()
+  closeChangePassword()
+  showToast('Master password changed', 'success')
 }
 
-function renderAccounts() {
-  const c = categorySelect.value
+// ── Auto-Lock ──
 
-  if (c !== currentCategory) {
-    clearForm()
-    selectedIndex = null
-    currentCategory = c
-  }
-
-  catTitle.textContent = c || 'No category selected'
-  if (!c) return
-
-  const q = search.value.toLowerCase()
-  const list = vaultData.categories[c].filter(a =>
-    a.name.toLowerCase().includes(q)
-  )
-
-  const start = (page - 1) * PER_PAGE
-  const items = list.slice(start, start + PER_PAGE)
-
-  accountList.innerHTML = ''
-
-  items.forEach((a, i) => {
-    const idx = start + i
-    accountList.innerHTML += `
-      <div class="list-item ${selectedCategory === c && selectedIndex === idx ? 'active' : ''}"
-           onclick="loadAccount('${c}', ${idx})">
-        <div>
-          <strong>${a.name}</strong><br>
-          <small>${a.user || ''}</small>
-        </div>
-        <div class="delete"
-             onclick="event.stopPropagation();delAccount('${c}', ${idx})">
-          x
-        </div>
-      </div>
-    `
-  })
-
-  renderPagination(list.length)
+function resetAutoLock() {
+  clearTimeout(state.autoLockTimer)
+  if (state.key) state.autoLockTimer = setTimeout(lockVault, AUTO_LOCK_MS)
 }
 
-function renderPagination(total) {
-  pagination.innerHTML = ''
-  const pages = Math.ceil(total / PER_PAGE)
+;['click', 'keydown', 'mousemove', 'scroll', 'touchstart'].forEach(ev =>
+  document.addEventListener(ev, resetAutoLock, { passive: true })
+)
 
-  for (let i = 1; i <= pages; i++) {
-    pagination.innerHTML +=
-      `<button onclick="page=${i};renderAccounts()">${i}</button>`
-  }
-}
+// ── Keyboard Shortcuts ──
 
-async function saveVault() {
-  if (!key) return
+document.addEventListener('keydown', e => {
+  if (!state.key) return
+  if (e.ctrlKey && e.key === 's') { e.preventDefault(); saveAccount() }
+  if (e.key === 'Escape') { clearForm(); renderAccounts() }
+  if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'l') { e.preventDefault(); lockVault() }
+})
 
-  const iv = crypto.getRandomValues(new Uint8Array(12))
-  const data = new TextEncoder().encode(JSON.stringify(vaultData))
-  const encrypted = await crypto.subtle.encrypt(
-    { name: 'AES-GCM', iv },
-    key,
-    data
-  )
+// ── Expose to Window (for inline onclick handlers in HTML) ──
 
-  localStorage.setItem(
-    'vault',
-    JSON.stringify({
-      iv: [...iv],
-      data: [...new Uint8Array(encrypted)]
-    })
-  )
-}
+Object.assign(window, {
+  // UI
+  toggle, toggleTheme, togglePassword, copyValue, quickCopy, clearForm,
+  // Vault
+  unlock, lockVault, saveVault, exportVault, importVault,
+  // Change password
+  showChangePassword, closeChangePassword, changePassword,
+  // Categories
+  addCategory, deleteCategory, selectCategory,
+  // Accounts
+  saveAccount, loadAccount, delAccount, toggleFavorite,
+  // Rendering
+  renderAccounts, goToPage
+})
 
-function exportVault() {
-  const d = localStorage.getItem('vault')
-  if (!d) return alert('Nothing to export')
+// ── Init ──
 
-  const b = new Blob([d], { type: 'application/json' })
-  const a = document.createElement('a')
-  a.href = URL.createObjectURL(b)
-  a.download = 'vault.json'
-  a.click()
-}
-
-function importVault(e) {
-  const r = new FileReader()
-  r.onload = () => localStorage.setItem('vault', r.result)
-  r.readAsText(e.target.files[0])
-}
-
-function onCategoryChange() {
-  selectedCategory = null
-  selectedIndex = null
-  page = 1
-  clearForm()
-  renderAccounts()
-}
+initTheme()
