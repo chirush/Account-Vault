@@ -2,7 +2,7 @@
 
 A client-side encrypted password manager built with zero dependencies. Your data never leaves your browser — encrypted with AES-256-GCM, no backend, no tracking.
 
-🔗 **[Live Demo](https://chirush.github.io/Account-Vault/)**
+🔗 **[Live Demo](https://chirush.github.io/account-vault/)**
 
 ---
 
