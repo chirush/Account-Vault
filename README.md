@@ -34,7 +34,7 @@ A client-side encrypted password manager built with zero dependencies. Your data
 ## 🚀 Getting Started
 
 ### Option 1: GitHub Pages
-Visit the **[live demo](https://chirush.github.io/Account-Vault/)** — works instantly, no setup needed.
+Visit the **[live demo](https://chirush.github.io/account-vault/)** — works instantly, no setup needed.
 
 ### Option 2: Run Locally
 ```bash
